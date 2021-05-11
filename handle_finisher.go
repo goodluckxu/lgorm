@@ -40,14 +40,28 @@ func (db *Db) addFinisher(name string) {
 			var iValue []reflect.Value
 			var handleParams = []interface{}{}
 			for k, v := range data.Params {
-				for _, v1 := range data.HandleParamsIndex {
-					if k == v1 {
-						handleParams = append(handleParams, v)
-						if data.HandleType == "Set" {
+				if data.HandleType == "Set" {
+					for _, v1 := range data.HandleParamsIndex {
+						if k == v1 {
+							handleParams = append(handleParams, v)
 							if newV := db.handleAttr(v, data.HandleType); newV != nil {
 								v = newV
 							}
 						}
+					}
+				} else if data.HandleType == "SetOne" {
+					fieldNum := data.HandleParamsIndex[0]
+					valNum := data.HandleParamsIndex[1]
+					field := data.Params[fieldNum].(string)
+					val := data.Params[valNum]
+					tmp := map[string]interface{}{field: val}
+					if newV := db.handleAttr(tmp, data.HandleType); newV != nil {
+						v = newV.(map[string]interface{})[field]
+					} else {
+						v = tmp[field]
+					}
+					if fieldNum == k {
+						v = field
 					}
 				}
 				iValue = append(iValue, reflect.ValueOf(v))

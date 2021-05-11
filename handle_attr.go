@@ -103,6 +103,9 @@ func (db *Db) runStructAttr(modelValue reflect.Value, value reflect.Value, field
 }
 
 func (db *Db) getFieldMethodAttr(model interface{}, handleType string) map[string]string {
+	if handleType == "SetOne" {
+		handleType = "Set"
+	}
 	result := map[string]string{}
 	value := reflect.ValueOf(model)
 	if value.Kind() == reflect.Ptr {

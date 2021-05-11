@@ -175,8 +175,8 @@ func (db *Db) Update(column string, value interface{}) (tx *Db) {
 	tx.Statement.Update = append(tx.Statement.Update, FinisherPool{
 		Params:            data,
 		IsCall:            true,
-		HandleType:        "Set",
-		HandleParamsIndex: []int{0},
+		HandleType:        "SetOne",
+		HandleParamsIndex: []int{0, 1},
 	})
 	tx.RunFinisher()
 	return
