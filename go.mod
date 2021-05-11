@@ -1,4 +1,4 @@
-module luckyxu
+module github.com/goodluckxu/lgorm
 
 go 1.16
 
