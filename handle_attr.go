@@ -7,6 +7,9 @@ import (
 
 // 操作attr
 func (db *Db) handleAttr(dest interface{}, handleType string) (newDest interface{}) {
+	if handleType == "SetOne" {
+		handleType = "Set"
+	}
 	var model interface{}
 	if db.Statement.Model.IsCall {
 		model = db.getModel(db.Statement.Model.Params[0])
@@ -103,9 +106,6 @@ func (db *Db) runStructAttr(modelValue reflect.Value, value reflect.Value, field
 }
 
 func (db *Db) getFieldMethodAttr(model interface{}, handleType string) map[string]string {
-	if handleType == "SetOne" {
-		handleType = "Set"
-	}
 	result := map[string]string{}
 	value := reflect.ValueOf(model)
 	if value.Kind() == reflect.Ptr {
