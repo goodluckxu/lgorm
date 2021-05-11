@@ -251,11 +251,25 @@ func (db *Db) Count(count *int64) (tx *Db) {
 }
 
 func (db *Db) Row() *sql.Row {
-	return db.getInstance().Row()
+	tx := db.getInstance()
+	tx.Statement.Row = FinisherPool{
+		IsCall: true,
+	}
+	tx.RunFinisher()
+	return tx.otherReturn[0].(*sql.Row)
 }
 
 func (db *Db) Rows() (*sql.Rows, error) {
-	return db.getInstance().Rows()
+	tx := db.getInstance()
+	tx.Statement.Rows = FinisherPool{
+		IsCall: true,
+	}
+	tx.RunFinisher()
+	var err error
+	if tx.otherReturn[1] != nil {
+		err = tx.otherReturn[1].(error)
+	}
+	return tx.otherReturn[0].(*sql.Rows), err
 }
 
 // Scan scan value to a struct
@@ -289,12 +303,37 @@ func (db *Db) Pluck(column string, dest interface{}) (tx *Db) {
 }
 
 func (db *Db) ScanRows(rows *sql.Rows, dest interface{}) error {
-	return db.DB.ScanRows(rows, dest)
+	tx := db.getInstance()
+	tx.Statement.ScanRows = FinisherPool{
+		Params:            []interface{}{rows, dest},
+		IsCall:            true,
+		HandleType:        "Get",
+		HandleParamsIndex: []int{1},
+	}
+	tx.RunFinisher()
+	var err error
+	if tx.otherReturn[0] != nil {
+		err = tx.otherReturn[0].(error)
+	}
+	return err
 }
 
 // Transaction start a transaction as a block, return error will rollback, otherwise to commit.
 func (db *Db) Transaction(fc func(tx *gorm.DB) error, opts ...*sql.TxOptions) (err error) {
-	return db.DB.Transaction(fc, opts...)
+	tx := db.getInstance()
+	data := []interface{}{fc}
+	for _, d := range opts {
+		data = append(data, d)
+	}
+	tx.Statement.Transaction = FinisherPool{
+		Params: data,
+		IsCall: true,
+	}
+	tx.RunFinisher()
+	if tx.otherReturn[0] != nil {
+		err = tx.otherReturn[0].(error)
+	}
+	return
 }
 
 // Begin begins a transaction

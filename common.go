@@ -2,8 +2,8 @@ package lgorm
 
 import (
 	"encoding/json"
-	"reflect"
 	"gorm.io/gorm"
+	"reflect"
 )
 
 // 是否是slice|array或slice|array指针
@@ -80,7 +80,13 @@ func (db *Db) getInputDataList(name string) interface{} {
 func (db *Db) runStructFunc(name string, value []reflect.Value) {
 	dbValue := reflect.ValueOf(db.DB)
 	callRs := dbValue.MethodByName(name).Call(value)
-	db.DB = callRs[0].Interface().(*gorm.DB)
+	if reflect.ValueOf(callRs[0].Interface()).Type().String() == "*gorm.DB" {
+		db.DB = callRs[0].Interface().(*gorm.DB)
+	} else {
+		for _, rs := range callRs {
+			db.otherReturn = append(db.otherReturn, rs.Interface())
+		}
+	}
 }
 
 // 初始化statement

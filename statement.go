@@ -38,8 +38,12 @@ type Statement struct {
 	UpdateColumns   []FinisherPool
 	Delete          []FinisherPool
 	Count           []FinisherPool
+	Row             FinisherPool
+	Rows            FinisherPool
 	Scan            []FinisherPool
 	Pluck           []FinisherPool
+	ScanRows        FinisherPool
+	Transaction     FinisherPool
 	Begin           []FinisherPool
 	Commit          []FinisherPool
 	Rollback        []FinisherPool

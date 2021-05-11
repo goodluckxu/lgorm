@@ -6,8 +6,9 @@ import (
 
 type Db struct {
 	*gorm.DB
-	Statement Statement
-	ConnPool  ConnPool
+	Statement   Statement
+	ConnPool    ConnPool
+	otherReturn []interface{}
 }
 
 type ConnPool struct {

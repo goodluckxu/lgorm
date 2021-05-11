@@ -65,10 +65,26 @@ func (db *Db) addFinisher(name string) {
 			return
 		}
 		var iValue []reflect.Value
-		for _, v := range newData.Params {
+		var handleParams = []interface{}{}
+		for k, v := range newData.Params {
 			iValue = append(iValue, reflect.ValueOf(v))
+			for _, v1 := range newData.HandleParamsIndex {
+				if k == v1 {
+					handleParams = append(handleParams, v)
+				}
+			}
+		}
+		if newData.HandleType == "Set" {
+			for _, v := range handleParams {
+				db.handleAttr(v, newData.HandleType)
+			}
 		}
 		db.runStructFunc(name, iValue)
+		if newData.HandleType == "Get" {
+			for _, v := range handleParams {
+				db.handleAttr(v, newData.HandleType)
+			}
+		}
 	}
 }
 

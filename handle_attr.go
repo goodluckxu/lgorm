@@ -48,6 +48,9 @@ func (db *Db) runInterfaceAttr(modelValue reflect.Value, value map[string]interf
 		if fieldMethodMap[field] == "" {
 			continue
 		}
+		if val == nil {
+			continue
+		}
 		rValue := []reflect.Value{reflect.ValueOf(val)}
 		callRs := modelValue.MethodByName(fieldMethodMap[field]).Call(rValue)
 		value[field] = callRs[0].Interface()
