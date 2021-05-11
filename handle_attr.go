@@ -6,7 +6,7 @@ import (
 )
 
 // 操作attr
-func (db *Db) handleAttr(dest interface{}, handleType string) {
+func (db *Db) handleAttr(dest interface{}, handleType string) (newDest interface{}) {
 	var model interface{}
 	if db.Statement.Model.IsCall {
 		model = db.getModel(db.Statement.Model.Params[0])
@@ -18,10 +18,11 @@ func (db *Db) handleAttr(dest interface{}, handleType string) {
 		return
 	}
 	if db.isStruct(dest) {
-		db.handleStructAttr(model, dest, handleType)
+		newDest = db.handleStructAttr(model, dest, handleType)
 	} else {
 		db.handleInterfaceAttr(model, dest, handleType)
 	}
+	return
 }
 
 // 操作interface类型
@@ -58,9 +59,15 @@ func (db *Db) runInterfaceAttr(modelValue reflect.Value, value map[string]interf
 }
 
 // 操作struct
-func (db *Db) handleStructAttr(model interface{}, dest interface{}, handleType string) {
+func (db *Db) handleStructAttr(model interface{}, dest interface{}, handleType string) (newDest interface{}) {
 	fieldMethodMap := db.getFieldMethodAttr(model, handleType)
 	value := reflect.ValueOf(dest)
+	if value.Kind() != reflect.Ptr {
+		newValue := reflect.New(value.Type())
+		newValue.Elem().Set(value)
+		value = newValue
+		newDest = value.Interface()
+	}
 	if value.Kind() == reflect.Ptr {
 		value = value.Elem()
 	}
@@ -76,6 +83,7 @@ func (db *Db) handleStructAttr(model interface{}, dest interface{}, handleType s
 			db.runStructAttr(modelValue, value.Index(i), fieldMethodMap)
 		}
 	}
+	return
 }
 
 func (db *Db) runStructAttr(modelValue reflect.Value, value reflect.Value, fieldMethodMap map[string]string) {
