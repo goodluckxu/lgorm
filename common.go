@@ -80,12 +80,14 @@ func (db *Db) getInputDataList(name string) interface{} {
 func (db *Db) runStructFunc(name string, value []reflect.Value) {
 	dbValue := reflect.ValueOf(db.DB)
 	callRs := dbValue.MethodByName(name).Call(value)
-	if reflect.ValueOf(callRs[0].Interface()).Type().String() == "*gorm.DB" {
-		db.DB = callRs[0].Interface().(*gorm.DB)
-	} else {
-		for _, rs := range callRs {
-			db.otherReturn = append(db.otherReturn, rs.Interface())
+	if callRs[0].Interface() != nil {
+		if reflect.ValueOf(callRs[0].Interface()).Type().String() == "*gorm.DB" {
+			db.DB = callRs[0].Interface().(*gorm.DB)
+			return
 		}
+	}
+	for _, rs := range callRs {
+		db.otherReturn = append(db.otherReturn, rs.Interface())
 	}
 }
 
