@@ -1,0 +1,49 @@
+package lgorm
+
+type Statement struct {
+	Table           ChainAblePool
+	Model           ChainAblePool
+	Clauses         []ChainAblePool
+	Select          []ChainAblePool
+	Distinct        []ChainAblePool
+	Omit            []ChainAblePool
+	Where           []ChainAblePool
+	Not             []ChainAblePool
+	Or              []ChainAblePool
+	Joins           []ChainAblePool
+	Group           []ChainAblePool
+	Having          []ChainAblePool
+	Order           []ChainAblePool
+	Limit           ChainAblePool
+	Offset          ChainAblePool
+	Scopes          []ChainAblePool
+	Preload         []ChainAblePool
+	Attrs           []ChainAblePool
+	Assign          []ChainAblePool
+	Unscoped        ChainAblePool
+	Raw             []ChainAblePool
+	Create          []FinisherPool
+	CreateInBatches []FinisherPool
+	Save            []FinisherPool
+	First           []FinisherPool
+	Take            []FinisherPool
+	Last            []FinisherPool
+	Find            []FinisherPool
+	FindInBatches   []FinisherPool
+	FirstOrInit     []FinisherPool
+	FirstOrCreate   []FinisherPool
+	Update          []FinisherPool
+	Updates         []FinisherPool
+	UpdateColumn    []FinisherPool
+	UpdateColumns   []FinisherPool
+	Delete          []FinisherPool
+	Count           []FinisherPool
+	Scan            []FinisherPool
+	Pluck           []FinisherPool
+	Begin           []FinisherPool
+	Commit          []FinisherPool
+	Rollback        []FinisherPool
+	SavePoint       []FinisherPool
+	RollbackTo      []FinisherPool
+	Exec            []FinisherPool
+}
