@@ -37,85 +37,58 @@ func (db *Db) addFinisher(name string) {
 			if !data.IsCall {
 				continue
 			}
-			var iValue []reflect.Value
-			var handleParams = []interface{}{}
-			for k, v := range data.Params {
-				if data.HandleType == "SetOne" {
-					fieldNum := data.HandleParamsIndex[0]
-					valNum := data.HandleParamsIndex[1]
-					field := data.Params[fieldNum].(string)
-					val := data.Params[valNum]
-					tmp := map[string]interface{}{field: val}
-					if newV := db.handleAttr(tmp, data.HandleType); newV != nil {
-						v = newV.(map[string]interface{})[field]
-					} else {
-						v = tmp[field]
-					}
-					if fieldNum == k {
-						v = field
-					}
-				} else {
-					for _, v1 := range data.HandleParamsIndex {
-						if k == v1 {
-							handleParams = append(handleParams, v)
-							if data.HandleType == "Set" {
-								if newV := db.handleAttr(v, data.HandleType); newV != nil {
-									v = newV
-								}
-							}
-						}
-					}
-				}
-				iValue = append(iValue, reflect.ValueOf(v))
-			}
+			iValue, handleParams := db.handleSetAttr(data)
 			db.runStructFunc(name, iValue)
-			if data.HandleType == "Get" {
-				for _, v := range handleParams {
-					db.handleAttr(v, data.HandleType)
-				}
-			}
+			db.handleGetAttr(data, handleParams)
 		}
 	} else {
 		newData := dataList.(FinisherPool)
 		if !newData.IsCall {
 			return
 		}
-		var iValue []reflect.Value
-		var handleParams = []interface{}{}
-		for k, v := range newData.Params {
-			if newData.HandleType == "SetOne" {
-				fieldNum := newData.HandleParamsIndex[0]
-				valNum := newData.HandleParamsIndex[1]
-				field := newData.Params[fieldNum].(string)
-				val := newData.Params[valNum]
-				tmp := map[string]interface{}{field: val}
-				if newV := db.handleAttr(tmp, newData.HandleType); newV != nil {
-					v = newV.(map[string]interface{})[field]
-				} else {
-					v = tmp[field]
-				}
-				if fieldNum == k {
-					v = field
-				}
+		iValue, handleParams := db.handleSetAttr(newData)
+		db.runStructFunc(name, iValue)
+		db.handleGetAttr(newData, handleParams)
+	}
+}
+
+func (db *Db) handleSetAttr(data FinisherPool) (iValue []reflect.Value, handleParams []interface{}) {
+	for k, v := range data.Params {
+		if data.HandleType == "SetOne" {
+			fieldNum := data.HandleParamsIndex[0]
+			valNum := data.HandleParamsIndex[1]
+			field := data.Params[fieldNum].(string)
+			val := data.Params[valNum]
+			tmp := map[string]interface{}{field: val}
+			if newV := db.handleAttr(tmp, data.HandleType); newV != nil {
+				v = newV.(map[string]interface{})[field]
 			} else {
-				for _, v1 := range newData.HandleParamsIndex {
-					if k == v1 {
-						handleParams = append(handleParams, v)
-						if newData.HandleType == "Set" {
-							if newV := db.handleAttr(v, newData.HandleType); newV != nil {
-								v = newV
-							}
+				v = tmp[field]
+			}
+			if fieldNum == k {
+				v = field
+			}
+		} else {
+			for _, v1 := range data.HandleParamsIndex {
+				if k == v1 {
+					handleParams = append(handleParams, v)
+					if data.HandleType == "Set" {
+						if newV := db.handleAttr(v, data.HandleType); newV != nil {
+							v = newV
 						}
 					}
 				}
 			}
-			iValue = append(iValue, reflect.ValueOf(v))
 		}
-		db.runStructFunc(name, iValue)
-		if newData.HandleType == "Get" {
-			for _, v := range handleParams {
-				db.handleAttr(v, newData.HandleType)
-			}
+		iValue = append(iValue, reflect.ValueOf(v))
+	}
+	return
+}
+
+func (db *Db) handleGetAttr(data FinisherPool, handleParams []interface{}) {
+	if data.HandleType == "Get" {
+		for _, v := range handleParams {
+			db.handleAttr(v, data.HandleType)
 		}
 	}
 }
