@@ -1,6 +1,8 @@
 # lgorm
 将gorm封装了一层，可以实现getAttr和setAttr
 
+gorm地址 https://github.com/go-gorm/gorm
+
 ## 用法
 可以完全按照gorm的方法去实现功能
 
