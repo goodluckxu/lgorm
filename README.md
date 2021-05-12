@@ -42,7 +42,7 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-	var bank Bank
+	var bank model.Bank
 	db.Model(&bank).Where("id = 80").Update("name", "aaa")
 	db.First(&bank)
 	fmt.Println(bank)
