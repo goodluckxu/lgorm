@@ -86,7 +86,19 @@ func (db *Db) handleSetAttr(data FinisherPool) (iValue []reflect.Value, handlePa
 }
 
 func (db *Db) handleGetAttr(data FinisherPool, handleParams []interface{}) {
-	if data.HandleType == "Get" {
+	if data.HandleType == "GetOne" {
+		fieldNum := data.HandleParamsIndex[0]
+		valNum := data.HandleParamsIndex[1]
+		field := data.Params[fieldNum].(string)
+		val := data.Params[valNum]
+		tmp := map[string]interface{}{field: val}
+		if newV := db.handleAttr(tmp, data.HandleType); newV != nil {
+			val = newV.(map[string]interface{})[field]
+		} else {
+			val = tmp[field]
+		}
+		data.Params[valNum] = val
+	} else {
 		for _, v := range handleParams {
 			db.handleAttr(v, data.HandleType)
 		}

@@ -10,6 +10,9 @@ func (db *Db) handleAttr(dest interface{}, handleType string) (newDest interface
 	if handleType == "SetOne" {
 		handleType = "Set"
 	}
+	if handleType == "GetOne" {
+		handleType = "Get"
+	}
 	var model interface{}
 	if db.Statement.Model.IsCall {
 		model = db.getModel(db.Statement.Model.Params[0])
@@ -55,9 +58,25 @@ func (db *Db) runInterfaceAttr(modelValue reflect.Value, value map[string]interf
 		if val == nil {
 			continue
 		}
-		rValue := []reflect.Value{reflect.ValueOf(val)}
-		callRs := modelValue.MethodByName(fieldMethodMap[field]).Call(rValue)
-		value[field] = callRs[0].Interface()
+		funInType := modelValue.MethodByName(fieldMethodMap[field]).Type().In(0).String()
+		valueType := reflect.TypeOf(val).String()
+		reg := regexp.MustCompile(`^\**\[\]` + funInType + `$`)
+		if reg.MatchString(valueType) {
+			dataValue := reflect.ValueOf(val)
+			if dataValue.Kind() == reflect.Ptr {
+				dataValue = dataValue.Elem()
+			}
+			dataNum := dataValue.Len()
+			for i := 0; i < dataNum; i++ {
+				rValue := []reflect.Value{reflect.ValueOf(dataValue.Index(i).Interface())}
+				callRs := modelValue.MethodByName(fieldMethodMap[field]).Call(rValue)
+				reflect.ValueOf(val).Elem().Index(i).Set(reflect.ValueOf(callRs[0].Interface()))
+			}
+		} else {
+			rValue := []reflect.Value{reflect.ValueOf(val)}
+			callRs := modelValue.MethodByName(fieldMethodMap[field]).Call(rValue)
+			value[field] = callRs[0].Interface()
+		}
 	}
 }
 

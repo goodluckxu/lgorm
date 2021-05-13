@@ -295,8 +295,8 @@ func (db *Db) Pluck(column string, dest interface{}) (tx *Db) {
 	tx.Statement.Pluck = append(tx.Statement.Pluck, FinisherPool{
 		Params:            data,
 		IsCall:            true,
-		HandleType:        "Get",
-		HandleParamsIndex: []int{1},
+		HandleType:        "GetOne",
+		HandleParamsIndex: []int{0, 1},
 	})
 	tx.RunFinisher()
 	return
