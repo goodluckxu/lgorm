@@ -161,7 +161,7 @@ func (db *Db) FirstOrCreate(dest interface{}, conds ...interface{}) (tx *Db) {
 	tx.Statement.FirstOrCreate = append(tx.Statement.FirstOrCreate, FinisherPool{
 		Params:            data,
 		IsCall:            true,
-		HandleType:        "Get",
+		HandleType:        "GetOrSet",
 		HandleParamsIndex: []int{0},
 	})
 	tx.RunFinisher()
