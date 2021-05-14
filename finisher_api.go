@@ -3,6 +3,7 @@ package lgorm
 import (
 	"database/sql"
 	"gorm.io/gorm"
+	"reflect"
 )
 
 type FinisherPool struct {
@@ -171,6 +172,11 @@ func (db *Db) FirstOrCreate(dest interface{}, conds ...interface{}) (tx *Db) {
 // Update update attributes with callbacks, refer: https://gorm.io/docs/update.html#Update-Changed-Fields
 func (db *Db) Update(column string, value interface{}) (tx *Db) {
 	tx = db.getInstance()
+	if reflect.ValueOf(value).Type().String() == "*lgorm.Db" {
+		valueDb := value.(*Db)
+		valueDb.getChainAbleInstance()
+		value = valueDb.DB
+	}
 	data := []interface{}{column, value}
 	tx.Statement.Update = append(tx.Statement.Update, FinisherPool{
 		Params:            data,
@@ -198,12 +204,17 @@ func (db *Db) Updates(values interface{}) (tx *Db) {
 
 func (db *Db) UpdateColumn(column string, value interface{}) (tx *Db) {
 	tx = db.getInstance()
+	if reflect.ValueOf(value).Type().String() == "*lgorm.Db" {
+		valueDb := value.(*Db)
+		valueDb.getChainAbleInstance()
+		value = valueDb.DB
+	}
 	data := []interface{}{column, value}
 	tx.Statement.UpdateColumn = append(tx.Statement.UpdateColumn, FinisherPool{
 		Params:            data,
 		IsCall:            true,
-		HandleType:        "Set",
-		HandleParamsIndex: []int{0},
+		HandleType:        "SetOne",
+		HandleParamsIndex: []int{0, 1},
 	})
 	tx.RunFinisher()
 	return

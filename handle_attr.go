@@ -7,6 +7,9 @@ import (
 
 // 操作attr
 func (db *Db) handleAttr(dest interface{}, handleType string) (newDest interface{}) {
+	if !db.isAttr(dest) {
+		return
+	}
 	if handleType == "SetOne" {
 		handleType = "Set"
 	}
@@ -148,4 +151,33 @@ func (db *Db) getFieldMethodAttr(model interface{}, handleType string) map[strin
 		}
 	}
 	return result
+}
+
+// 是否可执行attr内容
+func (db *Db) isAttr(dest interface{}) bool {
+	value := reflect.ValueOf(dest)
+	if value.Kind() == reflect.Ptr {
+		value = value.Elem()
+	}
+	if value.Kind() == reflect.Map {
+		for _, destMap := range dest.(map[string]interface{}) {
+			if !db.isAttr(destMap) {
+				return false
+			}
+		}
+	} else if value.Kind() == reflect.Slice ||
+		value.Kind() == reflect.Array {
+		for _, destMap := range dest.([]interface{}) {
+			if !db.isAttr(destMap) {
+				return false
+			}
+		}
+	}
+	notTypeList := []string{"clause.Expr", "lgorm.Db", "gorm.DB"}
+	for _, notType := range notTypeList {
+		if value.Type().String() == notType {
+			return false
+		}
+	}
+	return true
 }
