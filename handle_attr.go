@@ -159,15 +159,8 @@ func (db *Db) isAttr(dest interface{}) bool {
 	if value.Kind() == reflect.Ptr {
 		value = value.Elem()
 	}
-	if value.Kind() == reflect.Map {
+	if value.Type().String() == "map[string]interface {}" {
 		for _, destMap := range dest.(map[string]interface{}) {
-			if !db.isAttr(destMap) {
-				return false
-			}
-		}
-	} else if value.Kind() == reflect.Slice ||
-		value.Kind() == reflect.Array {
-		for _, destMap := range dest.([]interface{}) {
 			if !db.isAttr(destMap) {
 				return false
 			}

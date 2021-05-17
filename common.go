@@ -78,8 +78,12 @@ func (db *Db) getInputDataList(name string) interface{} {
 
 // 执行结构体的方法
 func (db *Db) runStructFunc(name string, value []reflect.Value) {
+	newValue := []reflect.Value{}
+	for _, v := range value {
+		newValue = append(newValue, db.handleReflectValue(v))
+	}
 	dbValue := reflect.ValueOf(db.DB)
-	callRs := dbValue.MethodByName(name).Call(value)
+	callRs := dbValue.MethodByName(name).Call(newValue)
 	if callRs[0].Interface() != nil {
 		if reflect.ValueOf(callRs[0].Interface()).Type().String() == "*gorm.DB" {
 			db.DB = callRs[0].Interface().(*gorm.DB)
@@ -89,6 +93,23 @@ func (db *Db) runStructFunc(name string, value []reflect.Value) {
 	for _, rs := range callRs {
 		db.otherReturn = append(db.otherReturn, rs.Interface())
 	}
+}
+
+func (db *Db) handleReflectValue(value reflect.Value) reflect.Value {
+	switch value.Type().String() {
+	case "*lgorm.Db":
+		valueDb := value.Interface().(*Db)
+		valueDb.getChainAbleInstance()
+		return reflect.ValueOf(valueDb.DB)
+	case "map[string]interface {}":
+		newMap := map[string]interface{}{}
+		for k, v := range value.Interface().(map[string]interface{}) {
+			newValue := db.handleReflectValue(reflect.ValueOf(v))
+			newMap[k] = newValue.Interface()
+		}
+		return reflect.ValueOf(newMap)
+	}
+	return value
 }
 
 // 初始化statement
