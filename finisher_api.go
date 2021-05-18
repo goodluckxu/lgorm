@@ -319,20 +319,15 @@ func (db *Db) ScanRows(rows *sql.Rows, dest interface{}) error {
 }
 
 // Transaction start a transaction as a block, return error will rollback, otherwise to commit.
-func (db *Db) Transaction(fc func(tx *gorm.DB) error, opts ...*sql.TxOptions) (err error) {
+func (db *Db) Transaction(fc func(tx *Db) error, opts ...*sql.TxOptions) (err error) {
 	tx := db.getInstance()
-	data := []interface{}{fc}
-	for _, d := range opts {
-		data = append(data, d)
+	ltx := tx.Begin(opts...)
+	err = fc(ltx)
+	if err == nil {
+		ltx.Commit()
+		return
 	}
-	tx.Statement.Transaction = FinisherPool{
-		Params: data,
-		IsCall: true,
-	}
-	tx.RunFinisher()
-	if tx.otherReturn[0] != nil {
-		err = tx.otherReturn[0].(error)
-	}
+	ltx.Rollback()
 	return
 }
 

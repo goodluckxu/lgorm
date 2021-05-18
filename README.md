@@ -15,7 +15,10 @@ Set{structFieldName}Attr可以在添加和修改的时候处理添加的数据
 两个方法传入的参数类型和返回类型都应该是结构体field的类型
 
 ## 未实现attr的方法
-Transaction,FindInBatches 由于内部需要传*gorm.DB类型的值，内部的*gorm.DB调用的方法无法处理attr方法
+FindInBatches 由于内部需要传*gorm.DB类型的值，内部的*gorm.DB调用的方法无法处理attr方法
+
+## 已修改的方法
+1. Transaction方法参数的匿名方法fc的参数从*gorm.DB改为*lgorm.Db
 
 ## 用法实例
 ~~~go
