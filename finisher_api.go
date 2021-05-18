@@ -2,7 +2,7 @@ package lgorm
 
 import (
 	"database/sql"
-	"gorm.io/gorm"
+	"reflect"
 )
 
 type FinisherPool struct {
@@ -123,16 +123,39 @@ func (db *Db) Find(dest interface{}, conds ...interface{}) (tx *Db) {
 }
 
 // FindInBatches find records in batches
-func (db *Db) FindInBatches(dest interface{}, batchSize int, fc func(tx *gorm.DB, batch int) error) *Db {
-	tx := db.getInstance()
-	data := []interface{}{dest, batchSize, fc}
-	tx.Statement.FindInBatches = append(tx.Statement.FindInBatches, FinisherPool{
-		Params:            data,
-		IsCall:            true,
-		HandleType:        "Get",
-		HandleParamsIndex: []int{0},
-	})
-	tx.RunFinisher()
+func (db *Db) FindInBatches(dest interface{}, batchSize int, fc func(tx *Db, batch int) error) *Db {
+	var (
+		tx           = db.getInstance()
+		queryDB      = tx
+		batch        int
+		rowsAffected int64
+	)
+	for {
+		result := queryDB.Limit(batchSize).Find(dest)
+		rowsAffected += result.RowsAffected
+		batch++
+
+		if result.Error == nil && result.RowsAffected != 0 {
+			tx.AddError(fc(result, batch))
+		} else if result.Error != nil {
+			tx.AddError(result.Error)
+		}
+
+		if tx.Error != nil || int(result.RowsAffected) < batchSize {
+			break
+		} else {
+			resultsValue := reflect.Indirect(reflect.ValueOf(dest))
+			if result.DB.Statement.Schema.PrioritizedPrimaryField == nil {
+				queryDB = tx.Offset(batch * batchSize)
+			} else {
+				primaryValue, _ := result.DB.Statement.Schema.PrioritizedPrimaryField.ValueOf(resultsValue.Index(resultsValue.Len() - 1))
+				primaryField := "`"+result.DB.Statement.Table+"`.`"+result.DB.Statement.Schema.PrioritizedPrimaryField.DBName+"`"
+				queryDB = tx.Order(primaryField).Where(primaryField+" > ?", primaryValue)
+			}
+		}
+	}
+
+	tx.RowsAffected = rowsAffected
 	return tx
 }
 

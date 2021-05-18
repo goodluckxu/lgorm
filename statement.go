@@ -29,7 +29,6 @@ type Statement struct {
 	Take            []FinisherPool
 	Last            []FinisherPool
 	Find            []FinisherPool
-	FindInBatches   []FinisherPool
 	FirstOrInit     []FinisherPool
 	FirstOrCreate   []FinisherPool
 	Update          []FinisherPool
@@ -43,7 +42,6 @@ type Statement struct {
 	Scan            []FinisherPool
 	Pluck           []FinisherPool
 	ScanRows        FinisherPool
-	Transaction     FinisherPool
 	Begin           []FinisherPool
 	Commit          []FinisherPool
 	Rollback        []FinisherPool
