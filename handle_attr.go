@@ -159,8 +159,22 @@ func (db *Db) isAttr(dest interface{}) bool {
 	if value.Kind() == reflect.Ptr {
 		value = value.Elem()
 	}
+	// 空列表不处理
+	if value.Kind() == reflect.Slice ||
+		value.Kind() == reflect.Array {
+		total := value.Len()
+		if total == 0 {
+			return false
+		}
+	}
+	// 空结构体不处理
+	if value.Kind() == reflect.Struct {
+		if value.Interface() == reflect.New(value.Type()).Elem().Interface() {
+			return false
+		}
+	}
 	if value.Type().String() == "map[string]interface {}" {
-		for _, destMap := range dest.(map[string]interface{}) {
+		for _, destMap := range value.Interface().(map[string]interface{}) {
 			if !db.isAttr(destMap) {
 				return false
 			}
