@@ -169,7 +169,7 @@ func (db *Db) isAttr(dest interface{}) bool {
 	}
 	// 空结构体不处理
 	if value.Kind() == reflect.Struct {
-		if value.Interface() == reflect.New(value.Type()).Elem().Interface() {
+		if reflect.DeepEqual(value.Interface(), reflect.New(value.Type()).Elem().Interface()) {
 			return false
 		}
 	}
