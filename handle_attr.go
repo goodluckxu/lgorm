@@ -71,12 +71,26 @@ func (db *Db) runInterfaceAttr(modelValue reflect.Value, value map[string]interf
 			}
 			dataNum := dataValue.Len()
 			for i := 0; i < dataNum; i++ {
-				rValue := []reflect.Value{reflect.ValueOf(dataValue.Index(i).Interface())}
+				var newVal interface{}
+				if modelValue.MethodByName(fieldMethodMap[field]).Type().In(0) ==
+					reflect.TypeOf(dataValue.Index(i).Interface()) {
+					newVal = val
+				} else {
+					newVal = db.changeAttrType(modelValue.MethodByName(fieldMethodMap[field]).Type().In(0).String(),
+						dataValue.Index(i).Interface())
+				}
+				rValue := []reflect.Value{reflect.ValueOf(newVal)}
 				callRs := modelValue.MethodByName(fieldMethodMap[field]).Call(rValue)
 				reflect.ValueOf(val).Elem().Index(i).Set(reflect.ValueOf(callRs[0].Interface()))
 			}
 		} else {
-			rValue := []reflect.Value{reflect.ValueOf(val)}
+			var newVal interface{}
+			if modelValue.MethodByName(fieldMethodMap[field]).Type().In(0) == reflect.TypeOf(val) {
+				newVal = val
+			} else {
+				newVal = db.changeAttrType(modelValue.MethodByName(fieldMethodMap[field]).Type().In(0).String(), val)
+			}
+			rValue := []reflect.Value{reflect.ValueOf(newVal)}
 			callRs := modelValue.MethodByName(fieldMethodMap[field]).Call(rValue)
 			value[field] = callRs[0].Interface()
 		}
