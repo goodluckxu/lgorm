@@ -1,7 +1,6 @@
 package lgorm
 
 import (
-	"fmt"
 	"gorm.io/datatypes"
 	"time"
 )
@@ -32,8 +31,7 @@ func (h handleAttrTypeInterface) datatypesJson(value interface{}) interface{} {
 
 func (h handleAttrTypeInterface) datatypesDate(value interface{}) interface{} {
 	newDate := datatypes.Date{}
-	timeByte,er := value.(time.Time).MarshalJSON()
-	fmt.Println(string(timeByte),er)
+	timeByte, _ := value.(time.Time).MarshalJSON()
 	_ = newDate.UnmarshalJSON(timeByte)
 	return newDate
 }
