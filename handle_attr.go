@@ -61,7 +61,9 @@ func (db *Db) runInterfaceAttr(modelValue reflect.Value, value map[string]interf
 		if val == nil {
 			continue
 		}
-		funInType := modelValue.MethodByName(fieldMethodMap[field]).Type().In(0).String()
+		findMethod := modelValue.MethodByName(fieldMethodMap[field])
+		funInTypeInterface := findMethod.Type().In(0)
+		funInType := funInTypeInterface.String()
 		valueType := reflect.TypeOf(val).String()
 		reg := regexp.MustCompile(`^\**\[\]` + funInType + `$`)
 		if reg.MatchString(valueType) {
@@ -72,26 +74,26 @@ func (db *Db) runInterfaceAttr(modelValue reflect.Value, value map[string]interf
 			dataNum := dataValue.Len()
 			for i := 0; i < dataNum; i++ {
 				var newVal interface{}
-				if modelValue.MethodByName(fieldMethodMap[field]).Type().In(0) ==
+				if funInTypeInterface ==
 					reflect.TypeOf(dataValue.Index(i).Interface()) {
 					newVal = val
 				} else {
-					newVal = db.changeAttrType(modelValue.MethodByName(fieldMethodMap[field]).Type().In(0).String(),
+					newVal = db.changeAttrType(funInType,
 						dataValue.Index(i).Interface())
 				}
 				rValue := []reflect.Value{reflect.ValueOf(newVal)}
-				callRs := modelValue.MethodByName(fieldMethodMap[field]).Call(rValue)
+				callRs := findMethod.Call(rValue)
 				reflect.ValueOf(val).Elem().Index(i).Set(reflect.ValueOf(callRs[0].Interface()))
 			}
 		} else {
 			var newVal interface{}
-			if modelValue.MethodByName(fieldMethodMap[field]).Type().In(0) == reflect.TypeOf(val) {
+			if funInTypeInterface == reflect.TypeOf(val) {
 				newVal = val
 			} else {
-				newVal = db.changeAttrType(modelValue.MethodByName(fieldMethodMap[field]).Type().In(0).String(), val)
+				newVal = db.changeAttrType(funInType, val)
 			}
 			rValue := []reflect.Value{reflect.ValueOf(newVal)}
-			callRs := modelValue.MethodByName(fieldMethodMap[field]).Call(rValue)
+			callRs := findMethod.Call(rValue)
 			value[field] = callRs[0].Interface()
 		}
 	}
