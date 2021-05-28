@@ -171,6 +171,9 @@ func (db *Db) getFieldMethodAttr(model interface{}, handleType string) map[strin
 
 // 是否可执行attr内容
 func (db *Db) isAttr(dest interface{}) bool {
+	if dest == nil {
+		return false
+	}
 	value := reflect.ValueOf(dest)
 	if value.Kind() == reflect.Ptr {
 		value = value.Elem()
