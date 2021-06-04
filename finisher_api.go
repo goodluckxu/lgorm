@@ -56,6 +56,15 @@ func (db *Db) Save(value interface{}) (tx *Db) {
 
 // First find first record that match given conditions, order by primary key
 func (db *Db) First(dest interface{}, conds ...interface{}) (tx *Db) {
+	destValue := reflect.ValueOf(dest)
+	if destValue.Kind() == reflect.Ptr {
+		destValue = destValue.Elem()
+	}
+	if destValue.Type().Kind() == reflect.Map {
+		if reflect.DeepEqual(destValue.Interface(), reflect.New(destValue.Type()).Elem().Interface()) {
+			*dest.(*map[string]interface{}) = map[string]interface{}{}
+		}
+	}
 	tx = db.getInstance()
 	data := []interface{}{dest}
 	for _, d := range conds {
@@ -149,7 +158,7 @@ func (db *Db) FindInBatches(dest interface{}, batchSize int, fc func(tx *Db, bat
 				queryDB = tx.Offset(batch * batchSize)
 			} else {
 				primaryValue, _ := result.DB.Statement.Schema.PrioritizedPrimaryField.ValueOf(resultsValue.Index(resultsValue.Len() - 1))
-				primaryField := "`"+result.DB.Statement.Table+"`.`"+result.DB.Statement.Schema.PrioritizedPrimaryField.DBName+"`"
+				primaryField := "`" + result.DB.Statement.Table + "`.`" + result.DB.Statement.Schema.PrioritizedPrimaryField.DBName + "`"
 				queryDB = tx.Order(primaryField).Where(primaryField+" > ?", primaryValue)
 			}
 		}
