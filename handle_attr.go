@@ -192,17 +192,39 @@ func (db *Db) isAttr(dest interface{}) bool {
 			return false
 		}
 	}
-	if value.Type().String() == "map[string]interface {}" {
-		for _, destMap := range value.Interface().(map[string]interface{}) {
-			if !db.isAttr(destMap) {
-				return false
-			}
-		}
+	// 不等于类型
+	if !db.isType(dest) {
+		return false
+	}
+	return true
+}
+
+// 是否去掉排除类型
+func (db *Db) isType(dest interface{}) bool {
+	if dest == nil {
+		return true
+	}
+	value := reflect.ValueOf(dest)
+	if value.Kind() == reflect.Ptr {
+		value = value.Elem()
 	}
 	notTypeList := []string{"clause.Expr", "lgorm.Db", "gorm.DB"}
 	for _, notType := range notTypeList {
 		if value.Type().String() == notType {
 			return false
+		}
+	}
+	if value.Type().String() == "map[string]interface {}" {
+		for _, destMap := range value.Interface().(map[string]interface{}) {
+			if !db.isType(destMap) {
+				return false
+			}
+		}
+	} else if value.Type().String() == "[]interface {}" {
+		for _, destMap := range value.Interface().([]interface{}) {
+			if !db.isType(destMap) {
+				return false
+			}
 		}
 	}
 	return true
