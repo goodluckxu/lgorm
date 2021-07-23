@@ -76,7 +76,7 @@ func (db *Db) runInterfaceAttr(modelValue reflect.Value, value map[string]interf
 				var newVal interface{}
 				if funInTypeInterface ==
 					reflect.TypeOf(dataValue.Index(i).Interface()) {
-					newVal = val
+					newVal = dataValue.Index(i).Interface()
 				} else {
 					newVal = db.changeAttrType(funInType,
 						dataValue.Index(i).Interface())
