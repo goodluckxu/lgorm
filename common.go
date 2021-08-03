@@ -96,6 +96,9 @@ func (db *Db) runStructFunc(name string, value []reflect.Value) {
 }
 
 func (db *Db) handleReflectValue(value reflect.Value) reflect.Value {
+	if !value.IsValid() {
+		return reflect.Zero(reflect.TypeOf((*error)(nil)).Elem())
+	}
 	switch value.Type().String() {
 	case "*lgorm.Db":
 		valueDb := value.Interface().(*Db)
