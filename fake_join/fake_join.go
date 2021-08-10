@@ -58,7 +58,7 @@ func MoreJoinTable(mainData interface{}, otherDb *lgorm.Db, where map[string]str
 		for k, v := range keyList {
 			vStr := FormatNumber(v)
 			if len(whereList) > k {
-				whereList[k] += " and " + oKey + " = " + vStr + ")"
+				whereList[k] += " and " + oKey + " = " + vStr
 			} else {
 				whereList = append(whereList, "("+oKey+" = "+vStr)
 			}
@@ -71,7 +71,7 @@ func MoreJoinTable(mainData interface{}, otherDb *lgorm.Db, where map[string]str
 	if whereLen == 1 {
 		otherDb.Where(whereIn["key"], whereIn["list"]).Find(&list)
 	} else {
-		whereStr := strings.Join(whereList, " or ")
+		whereStr := strings.Join(whereList, ") or ") + ")"
 		otherDb.Where(whereStr).Find(&list)
 	}
 	reMain := reorganizingMainData(newMainData, aliasMKey, where)
