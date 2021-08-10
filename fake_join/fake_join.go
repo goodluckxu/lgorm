@@ -28,7 +28,7 @@ func MoreJoinTable(mainData interface{}, otherDb *lgorm.Db, where map[string]str
 	whereLen := 0
 	aliasMKey := ""
 	index := -10
-	for mKey, oKey := range where {
+	for mKey, _ := range where {
 		starIndex := -1
 		ruleKeyList := strings.Split(mKey, ".")
 		for key, rule := range ruleKeyList {
@@ -52,7 +52,13 @@ func MoreJoinTable(mainData interface{}, otherDb *lgorm.Db, where map[string]str
 			}
 		}
 		whereLen++
-		keyList := getMKeyDataList(mKey, newMainData)
+	}
+	if whereLen == 0 {
+		return newMainData
+	}
+	reMain := reorganizingMainData(newMainData, aliasMKey, where)
+	for _, oKey := range where {
+		keyList := getMKeyDataList(aliasMKey+"."+oKey, reMain)
 		whereIn["key"] = oKey + " in (?)"
 		whereIn["list"] = removeDuplicateElement(keyList)
 		for k, v := range keyList {
@@ -64,9 +70,6 @@ func MoreJoinTable(mainData interface{}, otherDb *lgorm.Db, where map[string]str
 			}
 		}
 	}
-	if whereLen == 0 {
-		return newMainData
-	}
 	var list []map[string]interface{}
 	if whereLen == 1 {
 		otherDb.Where(whereIn["key"], whereIn["list"]).Find(&list)
@@ -74,7 +77,6 @@ func MoreJoinTable(mainData interface{}, otherDb *lgorm.Db, where map[string]str
 		whereStr := strings.Join(whereList, ") or ") + ")"
 		otherDb.Where(whereStr).Find(&list)
 	}
-	reMain := reorganizingMainData(newMainData, aliasMKey, where)
 	newMainData = packageMainData(reMain, list, aliasMKey, alias, joinType)
 	newMainData = handle_interface.UpdateInterface(newMainData, []handle_interface.Rule{
 		{FindField: aliasMKey, Type: "_"},
@@ -118,10 +120,11 @@ func packageMainData(
 			for _, v := range newMainData {
 				newMainDataList = append(newMainDataList, packageMainData(v, list, otherAliasMKey, alias, joinType))
 			}
-			return newMainDataList
+			mainData = newMainDataList
 		} else {
 			newMainDataMap, _ := mainData.(map[string]interface{})
-			return packageMainData(newMainDataMap[newAliasMKey], list, otherAliasMKey, alias, joinType)
+			newMainDataMap[newAliasMKey] = packageMainData(newMainDataMap[newAliasMKey], list, otherAliasMKey, alias, joinType)
+			mainData = newMainDataMap
 		}
 	} else {
 		newMainDataMap, _ := mainData.(map[string]interface{})
@@ -159,20 +162,23 @@ func packageMainData(
 
 func getMKeyDataList(mKey string, mainData interface{}) []interface{} {
 	mKeyList := strings.Split(mKey, ".")
+	newMKey := mKeyList[0]
+	otherMKey := strings.Join(mKeyList[1:], ".")
 	if len(mKeyList) > 1 {
-		if mKeyList[0] == "*" {
+		if newMKey == "*" {
 			newMainDataList := []interface{}{}
-			for _, v := range mainData.([]interface{}) {
-				newMainDataList = append(newMainDataList, getMKeyDataList(strings.Join(mKeyList[1:], "."), v)...)
+			newMainData, _ := mainData.([]interface{})
+			for _, v := range newMainData {
+				newMainDataList = append(newMainDataList, getMKeyDataList(otherMKey, v)...)
 			}
 			return newMainDataList
 		} else {
-			newMainDataMap := mainData.(map[string]interface{})
-			return getMKeyDataList(strings.Join(mKeyList[1:], "."), newMainDataMap[mKeyList[0]])
+			newMainDataMap, _ := mainData.(map[string]interface{})
+			return getMKeyDataList(otherMKey, newMainDataMap[newMKey])
 		}
 	} else {
-		newMainDataMap := mainData.(map[string]interface{})
-		return []interface{}{newMainDataMap[mKeyList[0]]}
+		newMainDataMap, _ := mainData.(map[string]interface{})
+		return []interface{}{newMainDataMap[newMKey]}
 	}
 }
 
