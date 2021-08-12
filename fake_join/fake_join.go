@@ -89,9 +89,7 @@ func reorganizingMainData(
 	aliasMKey string,
 	where map[string]string,
 ) interface{} {
-	rules := []handle_interface.Rule{
-		{FindField: aliasMKey, UpdateValue: map[string]interface{}{}},
-	}
+	rules := []handle_interface.Rule{}
 	for mKey, oKey := range where {
 		rules = append(rules, handle_interface.Rule{
 			FindField:   aliasMKey + "." + oKey,
