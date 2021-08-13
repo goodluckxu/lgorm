@@ -25,38 +25,9 @@ func MoreJoinTable(mainData interface{}, otherDb *lgorm.Db, where map[string]str
 		"key":  "",
 		"list": []interface{}{},
 	}
-	whereLen := 0
-	aliasMKey := ""
-	index := -10
-	for mKey, _ := range where {
-		starIndex := -1
-		ruleKeyList := strings.Split(mKey, ".")
-		for key, rule := range ruleKeyList {
-			if rule == "*" {
-				starIndex = key
-			}
-		}
-		if starIndex+1 == len(ruleKeyList) {
-			starIndex--
-		}
-		if starIndex == -1 {
-			starIndex++
-		}
-		if index == -10 {
-			index = starIndex
-			aliasMKey = strings.Join(ruleKeyList[0:index+1], ".") + "." + alias + alias
-		} else {
-			if index < starIndex {
-				index = starIndex
-				aliasMKey = strings.Join(ruleKeyList[0:index+1], ".") + "." + alias + alias
-			}
-		}
-		whereLen++
-	}
-	if whereLen == 0 {
-		return newMainData
-	}
+	aliasMKey := getAliasMKey(where, alias)
 	reMain := reorganizingMainData(newMainData, aliasMKey, where)
+	whereLen := 0
 	for _, oKey := range where {
 		keyList := getMKeyDataList(aliasMKey+"."+oKey, reMain)
 		whereIn["key"] = oKey + " in (?)"
@@ -69,6 +40,10 @@ func MoreJoinTable(mainData interface{}, otherDb *lgorm.Db, where map[string]str
 				whereList = append(whereList, "("+oKey+" = "+vStr)
 			}
 		}
+		whereLen++
+	}
+	if whereLen == 0 {
+		return newMainData
 	}
 	var list []map[string]interface{}
 	if whereLen == 1 {
@@ -99,6 +74,27 @@ func reorganizingMainData(
 	}
 	mainData = handle_interface.UpdateInterface(mainData, rules)
 	return mainData
+}
+
+func getAliasMKey(where map[string]string, alias string) string {
+	staLen := 0
+	longKey := ""
+	for mKey, _ := range where {
+		if staLen == 0 {
+			staLen = strings.Count(mKey, "*")
+			longKey = mKey
+		} else {
+			mKeyStaLen := strings.Count(mKey, "*")
+			if staLen < mKeyStaLen {
+				staLen = mKeyStaLen
+				longKey = mKey
+			}
+		}
+	}
+	longKeyList := strings.Split(longKey, ".")
+	aliasMKeyList := longKeyList[0 : len(longKeyList)-1]
+	aliasMKeyList = append(aliasMKeyList, alias+alias)
+	return strings.Join(aliasMKeyList, ".")
 }
 
 func packageMainData(
