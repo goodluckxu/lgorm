@@ -35,9 +35,9 @@ func MoreJoinTable(mainData interface{}, otherDb *lgorm.Db, where map[string]str
 		for k, v := range keyList {
 			vStr := FormatNumber(v)
 			if len(whereList) > k {
-				whereList[k] += " and " + oKey + " = " + vStr
+				whereList[k] += " and " + oKey + " = '" + vStr + "'"
 			} else {
-				whereList = append(whereList, "("+oKey+" = "+vStr)
+				whereList = append(whereList, "("+oKey+" = '"+vStr+"'")
 			}
 		}
 		whereLen++
