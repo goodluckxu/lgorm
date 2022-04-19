@@ -4,7 +4,7 @@
 gorm地址 https://github.com/go-gorm/gorm
 
 ## 用法
-可以完全按照gorm的方法去实现功能
+可以完全按照gorm的方法去实现功能（模型都用&符号才能完全兼容AfterFind,BeforeSave,BeforeCreate等钩子）
 
 优化了链式调用时，需要重新赋值，如：db = db.Where("id = ?", id)，避免多次调用时的冲突
 
